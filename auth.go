@@ -5,12 +5,12 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	"mkgh.eu/heike/logger"
 )
 
 const maxSessionAge = 24 * time.Hour
@@ -19,7 +19,7 @@ func SignUp(username string, password string, db *sql.DB) error {
 	createUserQuery := "INSERT INTO users (username, password) VALUES ($1, $2)"
 	_, err := db.Exec(createUserQuery, username, password)
 	if err != nil {
-		logger.Error.Println(err)
+		log.Println(err)
 		return err
 	}
 	return nil
@@ -39,12 +39,12 @@ func getPassword(username string, db *sql.DB) (string, error) {
 func CheckPassword(username string, password string, db *sql.DB) error {
 	pw, err := getPassword(username, db)
 	if err != nil {
-		logger.Error.Println(err)
+		log.Println(err)
 		return err
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(pw), []byte(password))
 	if err != nil {
-		logger.Error.Println("Error Invalid username or password", err)
+		log.Println("Error Invalid username or password", err)
 		return err
 	}
 	return nil
@@ -116,14 +116,14 @@ func RequireAuth(next http.HandlerFunc) http.HandlerFunc {
 func getSession(r *http.Request) (*session, error) {
 	cookie, err := r.Cookie("session")
 	if err != nil {
-		logger.Error.Println(err)
+		log.Println(err)
 		return nil, err
 	}
 	sessionManager.mu.RLock()
 	defer sessionManager.mu.RUnlock()
 	session, exists := sessionManager.sessions[cookie.Value]
 	if !exists {
-		logger.Error.Println("session not found", exists)
+		log.Println("session not found", exists)
 		return nil, errors.New("session not found")
 	}
 	return &session, nil
@@ -147,7 +147,7 @@ func RemoveSession(w http.ResponseWriter, r *http.Request) {
 func SetSession(username string, w http.ResponseWriter) error {
 	sessionID, err := generateSessionID()
 	if err != nil {
-		logger.Error.Println(err)
+		log.Println(err)
 		return err
 	}
 
