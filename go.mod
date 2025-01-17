@@ -1,4 +1,4 @@
-module github.com/33015/auth
+module github.com/33015/goauth
 
 go 1.23.0
 
