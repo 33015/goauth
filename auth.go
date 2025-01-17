@@ -26,7 +26,7 @@ func SignUp(username string, password string, db *sql.DB) error {
 }
 
 func getPassword(username string, db *sql.DB) (string, error) {
-	query := "SELECT password FROM users WHERE username = $1"
+	query := "SELECT password FROM users WHERE username = :username"
 	var name string
 	err := db.QueryRow(query, username).Scan(&name)
 	if err != nil {
